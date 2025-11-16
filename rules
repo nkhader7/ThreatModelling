@@ -1,0 +1,490 @@
+title = "Gitleaks + Nosey Parker Hybrid Rules (Slack, Facebook, HashiCorp, Generic, AWS)"
+
+################################
+# 1. SLACK - GITLEAKS ORIGINAL
+################################
+
+[[rules]]
+id = "slack-app-token"
+description = "Detected a Slack App-level token, risking unauthorized access to Slack applications and workspace data."
+regex = '''(?i)xapp-\d-[A-Z0-9]+-\d+-[a-z0-9]+'''
+entropy = 2
+keywords = ["xapp"]
+
+[[rules]]
+id = "slack-bot-token"
+description = "Identified a Slack Bot token, which may compromise bot integrations and communication channel security."
+regex = '''xoxb-[0-9]{10,13}-[0-9]{10,13}[a-zA-Z0-9-]*'''
+entropy = 3
+keywords = ["xoxb"]
+
+[[rules]]
+id = "slack-config-access-token"
+description = "Found a Slack Configuration access token, posing a risk to workspace configuration and sensitive data access."
+regex = '''(?i)xoxe.xox[bp]-\d-[A-Z0-9]{163,166}'''
+entropy = 2
+keywords = [
+  "xoxe.xoxb-",
+  "xoxe.xoxp-",
+]
+
+[[rules]]
+id = "slack-config-refresh-token"
+description = "Discovered a Slack Configuration refresh token, potentially allowing prolonged unauthorized access to configuration settings."
+regex = '''(?i)xoxe-\d-[A-Z0-9]{146}'''
+entropy = 2
+keywords = ["xoxe-"]
+
+[[rules]]
+id = "slack-legacy-bot-token"
+description = "Uncovered a Slack Legacy bot token, which could lead to compromised legacy bot operations and data exposure."
+regex = '''xoxb-[0-9]{8,14}-[a-zA-Z0-9]{18,26}'''
+entropy = 2
+keywords = ["xoxb"]
+
+[[rules]]
+id = "slack-legacy-token"
+description = "Detected a Slack Legacy token, risking unauthorized access to older Slack integrations and user data."
+regex = '''xox[os]-\d+-\d+-\d+-[a-fA-F\d]+'''
+entropy = 2
+keywords = [
+  "xoxo",
+  "xoxs",
+]
+
+[[rules]]
+id = "slack-legacy-workspace-token"
+description = "Identified a Slack Legacy Workspace token, potentially compromising access to workspace data and legacy features."
+regex = '''xox[ar]-(?:\d-)?[0-9a-zA-Z]{8,48}'''
+entropy = 2
+keywords = [
+  "xoxa",
+  "xoxr",
+]
+
+[[rules]]
+id = "slack-user-token"
+description = "Found a Slack User token, posing a risk of unauthorized user impersonation and data access within Slack workspaces."
+regex = '''xox[pe](?:-[0-9]{10,13}){3}-[a-zA-Z0-9-]{28,34}'''
+entropy = 2
+keywords = [
+  "xoxp-",
+  "xoxe-",
+]
+
+[[rules]]
+id = "slack-webhook-url"
+description = "Discovered a Slack Webhook, which could lead to unauthorized message posting and data leakage in Slack channels."
+regex = '''(?:https?://)?hooks.slack.com/(?:services|workflows|triggers)/[A-Za-z0-9+/]{43,56}'''
+keywords = ["hooks.slack.com"]
+
+
+######################################
+# 1A. SLACK - NOSEY PARKER STYLE ADD
+######################################
+
+[[rules]]
+id = "slack-bot-token-strong"
+description = "Slack Bot token (strict NP-style variant)."
+regex = '''\b(xoxb-[0-9]{10,12}-[0-9]{10,14}-[a-zA-Z0-9]{23,25})\b'''
+entropy = 3
+keywords = ["xoxb"]
+
+[[rules]]
+id = "slack-user-token-strong"
+description = "Slack User token (strict NP-style variant)."
+regex = '''\b(xoxp-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-f0-9]{32})\b'''
+entropy = 3
+keywords = ["xoxp"]
+
+[[rules]]
+id = "slack-app-token-strong"
+description = "Slack App-level token (strict NP-style variant)."
+regex = '''\b(xapp-[0-9]{12}-[a-zA-Z0-9/+]{24})\b'''
+entropy = 2.5
+keywords = ["xapp"]
+
+[[rules]]
+id = "slack-legacy-bot-token-strong"
+description = "Slack Legacy bot token (strict NP-style variant)."
+regex = '''\b(xoxb-[0-9]{10,13}-[a-zA-Z0-9]{24})\b'''
+entropy = 2.5
+keywords = ["xoxb"]
+
+[[rules]]
+id = "slack-webhook-url-strong"
+description = "Slack Incoming Webhook (strict NP-style format with T/B IDs)."
+regex = '''(?i)(https://hooks\.slack\.com/services/T[a-z0-9_]{8}/B[a-z0-9_]{8,12}/[a-z0-9_]{24})'''
+entropy = 1.5
+keywords = ["hooks.slack.com"]
+
+
+################################
+# 2. FACEBOOK - GITLEAKS
+################################
+
+[[rules]]
+id = "facebook-access-token"
+description = "Discovered a Facebook Access Token, posing a risk of unauthorized access to Facebook accounts and personal data exposure."
+regex = '''(?i)\b(\d{15,16}(\||%)[0-9a-z\-_]{27,40})(?:[\x60'"\s;]|\\[nr]|$)'''
+entropy = 3
+keywords = ["facebook"]
+
+[[rules]]
+id = "facebook-page-access-token"
+description = "Discovered a Facebook Page Access Token, posing a risk of unauthorized access to Facebook accounts and personal data exposure."
+regex = '''\b(EAA[MC](?i)[a-z0-9]{100,})(?:[\x60'"\s;]|\\[nr]|$)'''
+entropy = 4
+keywords = [
+  "eaam",
+  "eaac",
+]
+
+[[rules]]
+id = "facebook-secret"
+description = "Discovered a Facebook Application secret, posing a risk of unauthorized access to Facebook accounts and personal data exposure."
+regex = '''(?i)[\w.-]{0,50}?(?:facebook)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}([a-f0-9]{32})(?:[\x60'"\s;]|\\[nr]|$)'''
+entropy = 3
+keywords = ["facebook"]
+
+
+#######################################
+# 2A. FACEBOOK - NOSEY PARKER STYLE
+#######################################
+
+[[rules]]
+id = "facebook-secret-np-style"
+description = "Facebook / FB application secret (32 hex chars) with strong contextual keywords."
+regex = '''(?i)\b(?:facebook|fb).{0,20}?(?:api|app|application|client|consumer|customer|secret|key).{0,20}?(?:key|oauth|sec|secret)?[^0-9a-z]{0,5}\b([a-f0-9]{32})\b'''
+entropy = 3
+keywords = [
+  "facebook",
+  "fb",
+  "fb api",
+  "facebook app",
+  "facebook secret",
+]
+
+
+##########################################
+# 3. HASHICORP TERRAFORM - GITLEAKS
+##########################################
+
+[[rules]]
+id = "hashicorp-tf-api-token"
+description = "Uncovered a HashiCorp Terraform user/org API token, which may lead to unauthorized infrastructure management and security breaches."
+regex = '''(?i)[a-z0-9]{14}\.(?-i:atlasv1)\.[a-z0-9\-_=]{60,70}'''
+entropy = 3.5
+keywords = ["atlasv1"]
+
+[[rules]]
+id = "hashicorp-tf-password"
+description = "Identified a HashiCorp Terraform password field, risking unauthorized infrastructure configuration and security breaches."
+regex = '''(?i)[\w.-]{0,50}?(?:administrator_login_password|password)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}("[a-z0-9=_\-]{8,20}")(?:[\x60'"\s;]|\\[nr]|$)'''
+path = '''(?i)\.(?:tf|hcl)$'''
+entropy = 2
+keywords = [
+  "administrator_login_password",
+  "password",
+]
+
+
+##########################################
+# 3A. HASHICORP VAULT - NOSEY PARKER
+##########################################
+
+[[rules]]
+id = "hashicorp-vault-service-token-legacy"
+description = "HashiCorp Vault service token (< v1.10). May allow access to Vault and creation of additional tokens."
+regex = '''(?i)(?:hashicorp|vault|token|key|secret)["':= ]{0,5}\b(s\.[A-Za-z0-9_-]{24,128})(?:[^A-Za-z0-9_-]|$)'''
+entropy = 3
+keywords = ["vault", "hashicorp", "s."]
+
+[[rules]]
+id = "hashicorp-vault-batch-token-legacy"
+description = "HashiCorp Vault batch token (< v1.10). May allow access to Vault."
+regex = '''(?i)(?:hashicorp|vault|token|key|secret)["':= ]{0,5}\b(b\.[A-Za-z0-9_-]{24,500})(?:[^A-Za-z0-9_-]|$)'''
+entropy = 3
+keywords = ["vault", "hashicorp", "b."]
+
+[[rules]]
+id = "hashicorp-vault-recovery-token-legacy"
+description = "HashiCorp Vault recovery token (< v1.10). May allow access to Vault in recovery mode."
+regex = '''(?i)(?:hashicorp|vault|token|key|secret)["':= ]{0,5}\b(r\.[A-Za-z0-9_-]{24,500})(?:[^A-Za-z0-9_-]|$)'''
+entropy = 3
+keywords = ["vault", "hashicorp", "r."]
+
+[[rules]]
+id = "hashicorp-vault-service-token"
+description = "HashiCorp Vault service token (>= v1.10)."
+regex = '''\b(hvs\.[A-Za-z0-9]{24,130})(?:[^A-Za-z0-9_-]|$)'''
+entropy = 3
+keywords = ["hvs."]
+
+[[rules]]
+id = "hashicorp-vault-batch-token"
+description = "HashiCorp Vault batch token (>= v1.10)."
+regex = '''\b(hvb\.[A-Za-z0-9_-]{24,500})(?:[^A-Za-z0-9_-]|$)'''
+entropy = 3
+keywords = ["hvb."]
+
+[[rules]]
+id = "hashicorp-vault-recovery-token"
+description = "HashiCorp Vault recovery token (>= v1.10)."
+regex = '''\b(hvr\.[A-Za-z0-9]{24,130})(?:[^A-Za-z0-9_-]|$)'''
+entropy = 3
+keywords = ["hvr."]
+
+[[rules]]
+id = "hashicorp-vault-unseal-key"
+description = "HashiCorp Vault unseal key. May allow decryption/unsealing of a Vault."
+regex = '''(?i)unseal\b.{1,10}\b([A-Za-z0-9+/]{44})(?:[^A-Za-z0-9+/]|$)'''
+entropy = 3
+keywords = ["unseal"]
+
+
+#############################################
+# 4. GENERIC API KEY - GITLEAKS ORIGINAL
+#############################################
+
+[[rules]]
+id = "generic-api-key"
+description = "Detected a Generic API Key, potentially exposing access to various services and sensitive operations."
+regex = '''(?i)[\w.-]{0,50}?(?:access|auth|(?-i:[Aa]pi|API)|credential|creds|key|passw(?:or)?d|secret|token)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}([\w.=-]{10,150}|[a-z0-9][a-z0-9+/]{11,}={0,3})(?:[\x60'"\s;]|\\[nr]|$)'''
+entropy = 3.5
+keywords = [
+  "access",
+  "api",
+  "auth",
+  "key",
+  "credential",
+  "creds",
+  "passwd",
+  "password",
+  "secret",
+  "token",
+]
+
+[[rules.allowlists]]
+regexes = [
+  '''^[a-zA-Z_.-]+$''',
+]
+
+[[rules.allowlists]]
+description = "Allowlist for Generic API Keys"
+regexTarget = "match"
+regexes = [
+  '''(?i)(?:access(?:ibility|or)|access[_.-]?id|random[_.-]?access|api[_.-]?(?:id|name|version)|rapid|capital|[a-z0-9-]*?api[a-z0-9-]*?:jar:|author|X-MS-Exchange-Organization-Auth|Authentication-Results|(?:credentials?[_.-]?id|withCredentials)|(?:bucket|foreign|hot|idx|natural|primary|pub(?:lic)?|schema|sequence)[_.-]?key|(?:turkey)|key[_.-]?(?:alias|board|code|frame|id|length|mesh|name|pair|press(?:ed)?|ring|selector|signature|size|stone|storetype|word|up|down|left|right)|key[_.-]?vault[_.-]?(?:id|name)|keyVaultToStoreSecrets|key(?:store|tab)[_.-]?(?:file|path)|issuerkeyhash|(?-i:[DdMm]onkey|[DM]ONKEY)|keying|(?:secret)[_.-]?(?:length|name|size)|UserSecretsId|(?:csrf)[_.-]?token|(?:io\.jsonwebtoken[ \t]?:[ \t]?[\w-]+)|(?:api|credentials|token)[_.-]?(?:endpoint|ur[il])|public[_.-]?token|(?:key|token)[_.-]?file|(?-i:(?:[A-Z_]+=\n[A-Z_]+=|[a-z_]+=\n[a-z_]+=)(?:\n|\z))|(?-i:(?:[A-Z.]+=\n[A-Z.]+=|[a-z.]+=\n[a-z.]+=)(?:\n|\z)))''',
+]
+stopwords = [
+  # (huge stopword list from your original – keeping as-is)
+  "000000","6fe4476ee5a1832882e326b506d14126","_ec2_","aaaaaa","about",
+  # ... (shortened here for readability – keep your full list) ...
+  "zend","zero","zip-","zip.","zip_","zsh-","zsh.","zsh_",
+]
+
+[[rules.allowlists]]
+regexTarget = "line"
+regexes = [
+  '''--mount=type=secret,''',
+  '''import[ \t]+{[ \t\w,]+}[ \t]+from[ \t]+['"][^'"]+['"]''',
+]
+
+[[rules.allowlists]]
+condition = "AND"
+paths = [
+  '''\.bb$''','''\.bbappend$''','''\.bbclass$''','''\.inc$''',
+]
+regexTarget = "line"
+regexes = [
+  '''LICENSE[^=]*=\s*"[^"]+''',
+  '''LIC_FILES_CHKSUM[^=]*=\s*"[^"]+''',
+  '''SRC[^=]*=\s*"[a-zA-Z0-9]+''',
+]
+
+
+######################################
+# 4A. GENERIC SECRETS - NP ADDITIONS
+######################################
+
+[[rules]]
+id = "generic-username-password-quoted"
+description = "Hardcoded username and password (both quoted) in code or config."
+regex = """(?s)(?:username|USERNAME|user|USER)\\s*=\\s*["']([a-zA-Z0-9.@_\\-+]{3,30})["']\\s*[,;]?\\s*(?:\\s*(?:#|//)[^\\n\\r]*[\\n\\r])*?(?:password|pass|PASSWORD|PASS)\\s*=\\s*["']([^"']{5,30})["']"""
+entropy = 3
+keywords = ["username", "password"]
+
+[[rules]]
+id = "generic-username-password-unquoted"
+description = "Hardcoded username and password (unquoted) in code or config."
+regex = """(?s)(?:username|USERNAME|Username|UserName|user|USER)\\s*=\\s*(?:[A-Za-z][A-Za-z0-9_+-]{2,29}|[A-Za-z][A-Za-z0-9._+-]{2,29}@[A-Za-z_.-]{2,30})\\s*;?\\s*(?:\\s*(?:#|//)[^\\n\\r]*[\\n\\r])*?[A-Za-z0-9_]{0,30}(?:password|pass|PASSWORD|PASS|Password)\\s*=\\s*([^\\s$@{<]\\S{4,29})(?:\\s|$)"""
+entropy = 3
+keywords = ["username", "password"]
+
+[[rules]]
+id = "generic-password-double-quoted"
+description = "Hardcoded password in double quotes (generic)."
+regex = """(?i)password["']?\\s*(?:=|:|:=|=>)\\s*"([^$<%@.,\\s+'\"(){}&/\\\\#\\-][^\\s+'\"(){}/]{4,})\""""
+entropy = 3
+keywords = ["password", "pass"]
+
+[[rules]]
+id = "generic-dotnet-networkcredential"
+description = ".NET System.Net.NetworkCredential with hardcoded username and password."
+regex = """\\b(?:NetworkCredential|NETWORKCREDENTIAL|networkcredential)\\s*\\(\\s*"([^"\\n]{3,50})"\\s*,\\s*"([^"\\n]{3,50})"\\s*\\)"""
+entropy = 3
+keywords = ["NetworkCredential"]
+
+[[rules]]
+id = "generic-dotnet-directoryentry"
+description = ".NET DirectoryEntry with hardcoded path, username, and password."
+regex = """\\b(?:DirectoryEntry|DIRECTORYENTRY|directoryentry)\\s*\\(\\s*"([^"\\n]{3,100})"\\s*,\\s*"([^"\\n]{3,50})"\\s*,\\s*"([^"\\n]{3,50})"(?:\\s*,\\s*[^)]{3,50})?\\s*\\)"""
+entropy = 3
+keywords = ["DirectoryEntry"]
+
+[[rules]]
+id = "generic-dotnet-appsettings-sensitive"
+description = "Possibly-sensitive value in .NET appSettings (password, secret, user, admin, token)."
+regex = """<\\s*add\\s+key\\s*=\\s*"([^"\\n]{0,20}(?:[Pp]ass|PASS|[Ss]ecret|SECRET|[Uu]ser|USER|[Aa]dmin|ADMIN|[Tt]oken|TOKEN)[^"\\n]{0,20})"\\s+value\\s*=\\s*"([^"\\n]{3,100})"\\s*/\\s*>"""
+entropy = 3
+keywords = ["<add key=", "password", "secret", "token", "user", "admin"]
+
+[[rules]]
+id = "generic-dotnet-connectionstring"
+description = "Connection string in .NET configuration (may contain credentials)."
+regex = """<\\s*add\\s+key\\s*=\\s*"([^"\\n]{0,20}(?:[Cc]onnection[Ss]tring|CONNECTIONSTRING)[^"\\n]{0,20})"\\s+value\\s*=\\s*"([^"\\n]{3,200})"\\s*/\\s*>"""
+entropy = 3
+keywords = ["ConnectionString", "<add key="]
+
+[[rules]]
+id = "generic-default-password-double-quoted"
+description = "Documentation-like text: \"The (default) password is \"...\".\""
+regex = """(?i)the(?:\\s+default)?\\s+password\\s+is\\s+"([^'\\n\\#$|\"{<+\\ ()\\\\][^"\\n]{3,60})" """
+entropy = 3
+keywords = ["default password"]
+
+[[rules]]
+id = "generic-secret-in-if-double-quoted"
+description = "Hardcoded password/secret/challenge in code: if password == \"...\"."
+regex = """(?i)\\bif\\b.{0,50}\\b(?:secret|pass|password|challenge)\\b\\s*(?:==|!=|===|!== )\\s*"([^"\\n]{3,60})" """
+entropy = 3
+keywords = ["if", "password", "secret", "challenge"]
+
+
+####################################
+# 5. AWS - GITLEAKS ORIGINAL
+####################################
+
+[[rules]]
+id = "aws-access-token"
+description = "Identified a pattern that may indicate AWS credentials, risking unauthorized cloud resource access and data breaches on AWS platforms."
+regex = '''\b((?:A3T[A-Z0-9]|AKIA|ASIA|ABIA|ACCA)[A-Z2-7]{16})\b'''
+entropy = 3
+keywords = [
+  "a3t",
+  "akia",
+  "asia",
+  "abia",
+  "acca",
+]
+
+[[rules.allowlists]]
+regexes = [
+  '''.+EXAMPLE$''',
+]
+
+[[rules]]
+id = "aws-amazon-bedrock-api-key-long-lived"
+description = "Identified a pattern that may indicate long-lived Amazon Bedrock API keys, risking unauthorized Amazon Bedrock usage"
+regex = '''\b(ABSK[A-Za-z0-9+/]{109,269}={0,2})(?:[\x60'"\s;]|\\[nr]|$)'''
+entropy = 3
+keywords = ["absk"]
+
+[[rules]]
+id = "aws-amazon-bedrock-api-key-short-lived"
+description = "Identified a pattern that may indicate short-lived Amazon Bedrock API keys, risking unauthorized Amazon Bedrock usage"
+regex = '''bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29t'''
+entropy = 3
+keywords = ["bedrock-api-key-"]
+
+
+#########################################
+# 5A. AWS - NOSEY PARKER STYLE ADDITIONS
+#########################################
+
+[[rules]]
+id = "aws-secret-access-key"
+description = "AWS Secret Access Key in configuration or code."
+regex = """(?i)\\baws_?(?:secret)?_?(?:access)?_?(?:key)?["']?\\s{0,30}(?::|=>|=)\\s{0,30}["']?([a-z0-9/+=]{40})(?:[^a-z0-9/+=]|$)"""
+entropy = 3.5
+keywords = [
+  "aws_secret_access_key",
+  "aws_secret_key",
+  "aws_access_key_secret",
+]
+
+[[rules]]
+id = "aws-account-id"
+description = "AWS account ID assigned to an aws_account_id-like variable."
+regex = """(?i)aws_?(?:account)_?(?:id)?["'`] ?\\s{0,30}(?::|=>|=)\\s{0,30}["'`]?([0-9]{4}-?[0-9]{4}-?[0-9]{4})"""
+entropy = 2
+keywords = ["aws_account_id", "AWSAccountId"]
+
+[[rules]]
+id = "aws-session-token"
+description = "AWS session token (STS) in environment variables or config."
+regex = """(?i)(?:aws.?session|aws.?session.?token|aws.?token)["'`]?\\s{0,30}(?::|=>|=)\\s{0,30}["'`]?([a-z0-9/+=]{16,200})[^a-z0-9/+=]"""
+entropy = 3.5
+keywords = ["AWS_SESSION_TOKEN", "aws_session_token"]
+
+[[rules]]
+id = "aws-mws-auth-token"
+description = "Amazon MWS authorization token (deprecated service, but still sensitive if present)."
+regex = '''(?i)(amzn\.mws\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'''
+entropy = 2.5
+keywords = ["amzn.mws"]
+
+[[rules]]
+id = "aws-s3-bucket-virtual-host"
+description = "AWS S3 bucket URL (virtual-host style)."
+regex = '''(?:^|[\s/"']|%2F)((?:[A-Za-z0-9_-]+\.)+(?:s3|s3-[a-z0-9-]+)\.amazonaws\.com)\b'''
+entropy = 1.5
+keywords = ["s3.amazonaws.com", ".s3-"]
+
+[[rules]]
+id = "aws-s3-bucket-path-style"
+description = "AWS S3 bucket URL (path style)."
+regex = '''(?:^|[\s/"']|%2F)((?:s3|s3-[a-z0-9-]+)\.amazonaws\.com/[A-Za-z0-9_][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*)(?:[^A-Za-z0-9_-]|$)'''
+entropy = 1.5
+keywords = ["s3.amazonaws.com", "/"]
+
+[[rules]]
+id = "aws-arn"
+description = "Amazon Resource Name (ARN). May identify sensitive AWS resources."
+regex = '''\b(arn:(?:aws|aws-cn|aws-us-gov):[A-Za-z0-9_-]{2,}:(?:af-south-1|ap-east-1|ap-northeast-1|ap-northeast-2|ap-northeast-3|ap-south-1|ap-south-2|ap-southeast-1|ap-southeast-2|ap-southeast-3|ap-southeast-4|ca-central-1|eu-central-1|eu-central-2|eu-north-1|eu-south-1|eu-south-2|eu-west-1|eu-west-2|eu-west-3|me-central-1|me-south-1|sa-east-1|us-east-1|us-east-2|us-gov-east-1|us-gov-west-1|us-west-1|us-west-2)?:(?:\d{12})?:(?:[A-Za-z0-9_-]+[:/])?[^\s"'&<>\\%]+)(?:[\s"'&<>\\%]|$)'''
+entropy = 2
+keywords = ["arn:aws:", "arn:aws-us-gov:", "arn:aws-cn:"]
+
+[[rules]]
+id = "aws-appsync-api-key"
+description = "AWS AppSync API key (da2-...). May be sensitive depending on configuration."
+regex = '''\b(da2-[a-z0-9]{26})\b'''
+entropy = 2.5
+keywords = ["da2-"]
+
+[[rules]]
+id = "aws-api-credentials-pair"
+description = "AWS API key with a nearby 40-character secret (API key + secret pair)."
+regex = '''\b((?:A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16})\b(?s).{0,40}\b([A-Za-z0-9/+=]{40})(?:[^A-Za-z0-9/+=]|$)'''
+entropy = 4
+keywords = [
+  "AKIA",
+  "ASIA",
+  "AIDA",
+  "A3T",
+  "AGPA",
+  "AROA",
+  "AIPA",
+  "ANPA",
+  "ANVA",
+]
